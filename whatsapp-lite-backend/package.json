@@ -2,6 +2,7 @@
   "name": "whatsapp-lite-backend",
   "version": "1.0.0",
   "description": "WhatsApp Lite — Express + Socket.IO + MySQL2 backend",
+  "private": true,
   "main": "server.js",
   "type": "module",
   "engines": {
@@ -9,7 +10,8 @@
   },
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "build": "echo Build complete"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
