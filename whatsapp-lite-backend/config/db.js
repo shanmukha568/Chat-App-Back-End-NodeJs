@@ -28,6 +28,11 @@ function buildSslOptions({ dbUrl, host } = {}) {
     dbUrl?.searchParams?.get("sslRejectUnauthorized") ??
     dbUrl?.searchParams?.get("ssl-reject-unauthorized");
 
+  // If the user explicitly sets rejectUnauthorized (via env or URL),
+  // assume they intend to use SSL even if `ssl=true` isn't present.
+  const enabledFromRejectUnauthorized =
+    rejectUnauthorizedFromUrl != null || process.env.DB_SSL_REJECT_UNAUTHORIZED != null;
+
   const defaultEnabled =
     process.env.NODE_ENV === "production" &&
     host != null &&
@@ -38,6 +43,7 @@ function buildSslOptions({ dbUrl, host } = {}) {
     (enabledFromUrl
       ? ["1", "true", "required", "require"].includes(String(enabledFromUrl).toLowerCase())
       : null) ??
+    (enabledFromRejectUnauthorized ? true : null) ??
     defaultEnabled;
 
   if (!enabled) return undefined;
