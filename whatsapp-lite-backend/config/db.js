@@ -18,6 +18,12 @@ function buildSslOptions({ dbUrl, host } = {}) {
     dbUrl?.searchParams?.get("sslmode") ??
     dbUrl?.searchParams?.get("ssl-mode");
 
+  const rejectUnauthorizedFromUrl =
+    dbUrl?.searchParams?.get("rejectUnauthorized") ??
+    dbUrl?.searchParams?.get("reject-unauthorized") ??
+    dbUrl?.searchParams?.get("sslRejectUnauthorized") ??
+    dbUrl?.searchParams?.get("ssl-reject-unauthorized");
+
   const defaultEnabled =
     process.env.NODE_ENV === "production" &&
     host != null &&
@@ -33,6 +39,7 @@ function buildSslOptions({ dbUrl, host } = {}) {
   if (!enabled) return undefined;
 
   const rejectUnauthorized =
+    parseBoolean(rejectUnauthorizedFromUrl) ??
     parseBoolean(process.env.DB_SSL_REJECT_UNAUTHORIZED) ??
     (process.env.NODE_ENV === "production" ? true : false);
 
