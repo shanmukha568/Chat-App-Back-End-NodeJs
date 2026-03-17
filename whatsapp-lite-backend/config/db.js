@@ -11,6 +11,10 @@ function parseBoolean(value) {
   return null;
 }
 
+function isUrlLike(value) {
+  return value != null && /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(String(value));
+}
+
 function buildSslOptions({ dbUrl, host } = {}) {
   const enabledFromEnv = parseBoolean(process.env.DB_SSL);
   const enabledFromUrl =
@@ -70,7 +74,7 @@ function buildDbConfig() {
   // If someone puts a full mysql://... URL into DB_HOST, treat it as a URL.
   // (Useful for Railway where you may copy a single connection string.)
   const dbHostRaw = process.env.DB_HOST;
-  if (dbHostRaw && /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(dbHostRaw)) {
+  if (isUrlLike(dbHostRaw)) {
     return parseMySqlUrl(dbHostRaw);
   }
 
@@ -89,6 +93,33 @@ function buildDbConfig() {
 }
 
 const dbConfig = buildDbConfig();
+
+function getConnectionSource() {
+  if (process.env.DATABASE_URL) return "DATABASE_URL";
+  if (process.env.MYSQL_URL) return "MYSQL_URL";
+  if (isUrlLike(process.env.DB_HOST)) return "DB_HOST(url)";
+  if (process.env.DB_HOST || process.env.DB_PORT || process.env.DB_NAME || process.env.DB_USER)
+    return "DB_*";
+  if (process.env.MYSQLHOST || process.env.MYSQLPORT || process.env.MYSQLDATABASE || process.env.MYSQLUSER)
+    return "MYSQL* (Railway-style split vars)";
+  return "defaults";
+}
+
+if (parseBoolean(process.env.DB_DEBUG)) {
+  const sslEnabled = Boolean(dbConfig.ssl);
+  const rejectUnauthorized =
+    typeof dbConfig.ssl === "object" && dbConfig.ssl != null
+      ? dbConfig.ssl.rejectUnauthorized
+      : undefined;
+
+  console.log("[db] source:", getConnectionSource());
+  console.log("[db] host:", dbConfig.host);
+  console.log("[db] port:", dbConfig.port);
+  console.log("[db] database:", dbConfig.database);
+  console.log("[db] user:", dbConfig.user);
+  console.log("[db] ssl.enabled:", sslEnabled);
+  if (sslEnabled) console.log("[db] ssl.rejectUnauthorized:", rejectUnauthorized);
+}
 
 const pool = mysql.createPool({
   ...dbConfig,
