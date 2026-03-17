@@ -23,9 +23,19 @@ function escapeRegExp(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function normalizeOriginValue(value) {
+  if (!value) return value;
+  const trimmed = String(value).trim().replace(/\/+$/, "");
+  try {
+    return new URL(trimmed).origin.toLowerCase();
+  } catch {
+    return trimmed.toLowerCase();
+  }
+}
+
 const corsOriginList = (process.env.CORS_ORIGINS || "http://localhost:5173")
   .split(",")
-  .map((s) => s.trim())
+  .map(normalizeOriginValue)
   .filter(Boolean);
 
 const corsOriginMatchers = corsOriginList.map((pattern) => {
@@ -37,10 +47,11 @@ const corsOriginMatchers = corsOriginList.map((pattern) => {
 
 function isAllowedOrigin(origin) {
   if (!origin) return true;
+  const normalizedOrigin = normalizeOriginValue(origin);
   for (const matcher of corsOriginMatchers) {
     if (matcher.type === "any") return true;
-    if (matcher.type === "exact" && origin === matcher.value) return true;
-    if (matcher.type === "regex" && matcher.value.test(origin)) return true;
+    if (matcher.type === "exact" && normalizedOrigin === matcher.value) return true;
+    if (matcher.type === "regex" && matcher.value.test(normalizedOrigin)) return true;
   }
   return false;
 }
