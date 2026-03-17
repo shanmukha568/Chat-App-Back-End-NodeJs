@@ -106,7 +106,9 @@ server.listen(PORT, async () => {
     await testConnection();
   } catch (err) {
     console.error("MySQL connection failed:", err.message);
-    console.error("-> Check DB_* (or DATABASE_URL) env vars and confirm MySQL is reachable.");
+    console.error(
+      "-> Check DATABASE_URL / MYSQL_URL (or DB_*). If you used Railway and pasted a mysql://... URL into DB_HOST, that's supported too."
+    );
     process.exit(1);
   }
   console.log(`Server    -> http://localhost:${PORT}`);

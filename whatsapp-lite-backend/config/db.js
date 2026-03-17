@@ -59,8 +59,16 @@ function buildDbConfig() {
   const rawUrl = process.env.DATABASE_URL || process.env.MYSQL_URL;
   if (rawUrl) return parseMySqlUrl(rawUrl);
 
+  // Back-compat / convenience:
+  // If someone puts a full mysql://... URL into DB_HOST, treat it as a URL.
+  // (Useful for Railway where you may copy a single connection string.)
+  const dbHostRaw = process.env.DB_HOST;
+  if (dbHostRaw && /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(dbHostRaw)) {
+    return parseMySqlUrl(dbHostRaw);
+  }
+
   const host =
-    process.env.DB_HOST ||
+    dbHostRaw ||
     process.env.MYSQLHOST ||
     process.env.MYSQL_HOST ||
     "localhost";
