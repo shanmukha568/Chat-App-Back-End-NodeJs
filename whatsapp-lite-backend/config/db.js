@@ -51,7 +51,7 @@ function buildSslOptions({ dbUrl, host } = {}) {
   const rejectUnauthorized =
     parseBoolean(rejectUnauthorizedFromUrl) ??
     parseBoolean(process.env.DB_SSL_REJECT_UNAUTHORIZED) ??
-    (process.env.NODE_ENV === "production" ? true : false);
+    false;
 
   return { rejectUnauthorized };
 }
